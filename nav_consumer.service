@@ -1,0 +1,22 @@
+[Unit]
+Description=RabbitMQ -> PostgreSQL g_nav consumer
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=adisadmin                        
+WorkingDirectory=/home/adisadmin
+ExecStart=/usr/bin/python3 /home/adisadmin/nav_consumer.py
+Restart=always
+RestartSec=5
+TimeoutStartSec=30
+TimeoutStopSec=30
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=append:/var/log/nav_consumer.log
+StandardError=append:/var/log/nav_consumer_error.log
+SyslogIdentifier=nav_consumer
+
+[Install]
+WantedBy=multi-user.target
