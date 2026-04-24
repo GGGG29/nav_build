@@ -3,6 +3,8 @@ import pika
 import xml.etree.ElementTree as ET
 import signal
 import sys
+import os       # <-- Добавили
+import json     # <-- Добавили
 from datetime import datetime
 import logging
 
@@ -13,24 +15,41 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
+# ===================== ЧТЕНИЕ APPSETTINGS =====================
+if getattr(sys, 'frozen', False):
+    base_dir = os.path.dirname(sys.executable)
+else:
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+config_path = os.path.join(base_dir, 'appsettings.json')
+
+try:
+    with open(config_path, 'r', encoding='utf-8') as f:
+        config = json.load(f)
+except FileNotFoundError:
+    log.error(f"Критическая ошибка: файл {config_path} не найден!")
+    sys.exit(1)
+except json.JSONDecodeError as e:
+    log.error(f"Ошибка чтения JSON в appsettings.json: {e}")
+    sys.exit(1)
+
 # ===================== НАСТРОЙКИ =====================
 # PostgreSQL
-PG_HOST = "192.168.1.29"
-PG_PORT = 5432
-PG_DB = "GIS03v3"
-PG_USER = "gis03user"
-PG_PASSWORD = "Qwerty1"
+PG_HOST = config["Postgres"]["Host"]
+PG_PORT = config["Postgres"]["Port"]
+PG_DB = config["Postgres"]["Database"]
+PG_USER = config["Postgres"]["User"]
+PG_PASSWORD = config["Postgres"]["Password"]
 
 # RabbitMQ
-RABBIT_HOST = "192.168.1.34"
-RABBIT_USER = "vegastar"
-RABBIT_PASSWORD = "So!lwork1"
-RABBIT_QUEUE = "NavToDB"
+RABBIT_HOST = config["RabbitMQ"]["Host"]
+RABBIT_USER = config["RabbitMQ"]["User"]
+RABBIT_PASSWORD = config["RabbitMQ"]["Password"]
+RABBIT_QUEUE = config["RabbitMQ"]["Queue"]
 
 # Performance
-BATCH_SIZE = 100
-LOG_EVERY = 100
-
+BATCH_SIZE = config["Performance"]["BatchSize"]
+LOG_EVERY = config["Performance"]["LogEvery"]
 # ===================== POSTGRES =====================
 pg_conn = psycopg2.connect(
     host=PG_HOST,
