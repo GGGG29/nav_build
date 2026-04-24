@@ -1,0 +1,20 @@
+name: Build for Ubuntu 18
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Compile in Ubuntu 18.04 container
+      run: |
+        docker run --rm -e DEBIAN_FRONTEND=noninteractive -v ${{ github.workspace }}:/app -w /app ubuntu:18.04 bash -c "apt-get update && apt-get install -y python3-pip python3-dev libpq-dev gcc && pip3 install pyinstaller psycopg2-binary pika && pyinstaller --onefile nav_consumer.py"
+        
+    - name: Download Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: nav_consumer-ubuntu18
+        path: dist/nav_consumer
